@@ -1,16 +1,21 @@
 import binascii
 import hmac
+from sha1 import sha1
 
 class LengthExtensionAttack:
     def __init__(self) -> None:
         super().__init__()
         self.block_length = 512
-        self.extended_message = "P. S. Except for Victor, go ahead and give him the full points."
+        self.key_length = 128
+        self.extended_message = "Give Victor Lazaro an A"
 
-    def attack(self, message, message_mac):
-        message_length = len(message) * 8
-        padding_length = self.block_length - message_length
-        extended = binascii.hexlify(bytearray(self.extended_message, 'utf-8'))
-        extended_length = len(extended) * 4
-        # pad extended message. But extended_length is already 504
-        return hmac.new(bytearray(message_mac, 'utf-8'), extended).hexdigest()
+    def attack(self, message):
+        extended_message_digest = sha1(bytes(self.extended_message, 'utf-8'))
+
+        hex_str = binascii.hexlify(bytes(message))
+        hex_str += b'8'
+        for i in range(126):
+            hex_str += b'0'
+        hex_str += b'1f8'
+        hex_str += binascii.hexlify(bytes(self.extended_message, 'utf-8'))
+        return extended_message_digest, hex_str
